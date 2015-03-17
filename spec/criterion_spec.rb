@@ -45,7 +45,7 @@ RSpec.describe Criterion do
         expect(collection.where(name: 'Matt', age: 28...32).first).to eq one
       end
 
-      it "can chain multiple where calles" do
+      it "can chain multiple where calls" do
         expect(collection.where(name: 'Matt').where(age: 30).first).to eq one
       end
 
@@ -107,6 +107,54 @@ RSpec.describe Criterion do
 
       it "returns the last result matching the criteria" do
         expect(criteria.last.name).to eq 'Matt'
+      end
+
+    end
+
+    context "#all" do
+
+      it "returns all results" do
+        expect(collection.where.all.count).to eq 3
+      end
+
+    end
+
+    context "Calculations" do
+
+      context "#sum" do
+
+        it "totals the numbers for the specified field" do
+          expect(collection.where(age: 35..55).sum(:age)).to eq 95
+        end
+
+      end
+
+      context "#maximum" do
+
+        it "returns the highest value for the specified field" do
+          expect(collection.maximum(:age)).to eq 50
+        end
+
+      end
+
+      context "#minimum" do
+
+        it "returns the lowest value for the specified field" do
+          expect(collection.minimum(:age)).to eq 30
+        end
+
+      end
+
+      context "#average" do
+
+        it "calculates the mean for the specified field" do
+          expect(collection.average(:age)).to be_within(0.1).of(41.6)
+        end
+
+        it "returns nil if there are no values in the collection" do
+          expect(collection.where(age: 0..1).average(:age)).to be_nil
+        end
+
       end
 
     end

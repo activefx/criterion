@@ -4,7 +4,9 @@ require "forwardable"
 module Criterion
   extend Forwardable
 
-  def_delegators :scoped, :where, :order, :limit, :offset, :skip
+  def_delegators :scoped,
+    :where, :order, :limit, :offset, :skip,
+    :sum, :maximum, :minimum, :average
 
   def criteria
     @criteria ||= Criteria.new(self)
@@ -56,17 +58,36 @@ module Criterion
     end
     alias_method :skip, :offset
 
+    def average(field)
+      total = count
+      return nil if total.zero?
+      sum(field) / total.to_f
+    end
+
+    def sum(field)
+      to_a.inject(0) { |sum, obj| sum + obj.send(field) }
+    end
+
+    def minimum(field)
+      to_a.collect { |x| x.send(field) }.min
+    end
+
+    def maximum(field)
+      to_a.collect { |x| x.send(field) }.max
+    end
+
     def to_a
       results = @records.select do |record|
         where_values.all? do |method, value|
           value === record.send(method)
         end
       end
-      results = results.sort_by(&ordering_args)
+      results = results.sort_by(&ordering_args) unless order_values.empty?
       results = results.drop(offset_value) if offset_value.is_a?(Integer)
       results = results.take(limit_value) if limit_value.is_a?(Integer)
       results
     end
+    alias_method :all, :to_a
 
     def each(&block)
       to_a.each(&block)
@@ -77,6 +98,7 @@ module Criterion
     def ordering_args
       Proc.new do |item|
         order_values.map do |sort|
+          next unless [ :asc, :desc ].include?(sort.last)
           sort.last == :desc ? -item.send(sort.first) : item.send(sort.first)
         end
       end
