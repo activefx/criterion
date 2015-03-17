@@ -4,28 +4,29 @@ require "forwardable"
 module Criterion
   extend Forwardable
 
-  def_delegators :scoped,
-    :where, :order, :limit, :offset, :skip,
+  def_delegators :criteria,
+    :where, :not, :order, :limit, :offset, :skip,
     :sum, :maximum, :minimum, :average
 
   def criteria
-    @criteria ||= Criteria.new(self)
-  end
-
-  def scoped
-    criteria.clone
+    Criteria.new(self)
   end
 
   class Criteria
     extend Forwardable
     include Enumerable
 
-    MULTI_VALUE_METHODS   = [ :where, :order ]
+    MULTI_VALUE_METHODS   = [ :where, :not, :order ]
     SINGLE_VALUE_METHODS  = [ :limit, :offset ]
 
-    attr_accessor :where_values, :order_values, :limit_value, :offset_value
+    attr_accessor \
+      :where_values, :not_values, :order_values,
+      :limit_value, :offset_value
 
-    def_delegators :to_a, :first, :last, :count, :include?, :empty?
+    def_delegators :to_a,
+      :[], :at, :count, :empty?, :fetch, :first, :include?, :index,
+      :last, :length, :reverse, :rindex, :sample, :size, :sort,
+      :sort_by, :take, :take_while, :values_at
 
     def initialize(records)
       @records = records
@@ -36,6 +37,12 @@ module Criterion
     def where(query = {})
       clone.tap do |r|
         r.where_values.merge!(query) unless query.empty?
+      end
+    end
+
+    def not(query = {})
+      clone.tap do |r|
+        r.not_values.merge!(query) unless query.empty?
       end
     end
 
@@ -78,9 +85,13 @@ module Criterion
 
     def to_a
       results = @records.select do |record|
-        where_values.all? do |method, value|
+        keep = where_values.empty? ? true : where_values.all? do |method, value|
           value === record.send(method)
         end
+        exclude = not_values.empty? ? false : not_values.all? do |method, value|
+          value === record.send(method)
+        end
+        keep && !exclude
       end
       results = results.sort_by(&ordering_args) unless order_values.empty?
       results = results.drop(offset_value) if offset_value.is_a?(Integer)
@@ -88,6 +99,7 @@ module Criterion
       results
     end
     alias_method :all, :to_a
+    alias_method :to_ary, :to_a
 
     def each(&block)
       to_a.each(&block)

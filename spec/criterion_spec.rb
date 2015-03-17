@@ -9,8 +9,13 @@ RSpec.describe Criterion do
   let(:collection) { [ one, two, three ].extend(described_class) }
   let(:criteria) { collection.where(name: 'Matt') }
 
-  it 'has a version number' do
+  it "has a version number" do
     expect(Criterion::VERSION).not_to be nil
+  end
+
+  it "does not persist criteria state" do
+    collection.not(age: Integer)
+    expect(collection.where(name: 'Matt')).not_to be_empty
   end
 
   context "::Criteria" do
@@ -51,6 +56,18 @@ RSpec.describe Criterion do
 
       it "all arguments must match to return results" do
         expect(collection.where(name: 'Matt', age: 40)).to be_empty
+      end
+
+    end
+
+    context "#not" do
+
+      it "does not include matching values" do
+        expect(collection.not(name: 'Matt')).not_to include one
+      end
+
+      it "all values must match for result to be excluded" do
+        expect(collection.not(name: 'Matt', age: 40)).to include one
       end
 
     end
