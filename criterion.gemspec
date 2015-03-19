@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Matthew Solt"]
   spec.email         = ["mattsolt@gmail.com"]
 
-  spec.summary       = %q{Criterion is a small, simple library for searching Ruby arrays and collections with a chainable, Active Record style query interface.}
+  spec.summary       = %q{Search Ruby arrays and collections with a chainable, Active Record style query interface.}
   spec.description   = %q{Criterion is a small, simple library for searching Ruby arrays and collections with a chainable, Active Record style query interface.}
   spec.homepage      = "https://github.com/activefx/criterion"
   spec.license       = "MIT"
