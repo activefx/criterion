@@ -18,15 +18,17 @@ module Criterion
 
     MULTI_VALUE_METHODS   = [ :where, :not, :order ]
     SINGLE_VALUE_METHODS  = [ :limit, :offset ]
+    RESULT_METHODS = [
+      :[], :at, :count, :empty?, :fetch, :first, :include?, :index,
+      :last, :length, :reverse, :rindex, :sample, :size, :sort,
+      :sort_by, :take, :take_while, :values_at
+    ]
 
     attr_accessor \
       :where_values, :not_values, :order_values,
       :limit_value, :offset_value
 
-    def_delegators :to_a,
-      :[], :at, :count, :empty?, :fetch, :first, :include?, :index,
-      :last, :length, :reverse, :rindex, :sample, :size, :sort,
-      :sort_by, :take, :take_while, :values_at
+    def_delegators :to_a, *RESULT_METHODS
 
     def initialize(records)
       @records = records
@@ -83,19 +85,31 @@ module Criterion
       to_a.collect { |x| x.send(field) }.max
     end
 
+    def where?
+      !where_values.empty?
+    end
+
+    def not?
+      !not_values.empty?
+    end
+
+    def order?
+      !order_values.empty?
+    end
+
+    def offset?
+      valid_number?(offset_value)
+    end
+
+    def limit?
+      valid_number?(limit_value)
+    end
+
     def to_a
-      results = @records.select do |record|
-        keep = where_values.empty? ? true : where_values.all? do |method, value|
-          value === record.send(method)
-        end
-        exclude = not_values.empty? ? false : not_values.all? do |method, value|
-          value === record.send(method)
-        end
-        keep && !exclude
-      end
-      results = results.sort_by(&ordering_args) unless order_values.empty?
-      results = results.drop(offset_value) if offset_value.is_a?(Integer)
-      results = results.take(limit_value) if limit_value.is_a?(Integer)
+      results = @records.select{ |record| keep?(record) }
+      results = results.sort_by(&ordering_args) if order?
+      results = results.drop(offset_value) if offset?
+      results = results.take(limit_value) if limit?
       results
     end
     alias_method :all, :to_a
@@ -107,6 +121,18 @@ module Criterion
 
     private
 
+    def criteria_matches?(record, values)
+      values.all? do |method, value|
+        value === record.send(method)
+      end
+    end
+
+    def keep?(record)
+      keep = where? ? criteria_matches?(record, where_values) : true
+      exclude = not? ? criteria_matches?(record, not_values) : false
+      keep && !exclude
+    end
+
     def ordering_args
       Proc.new do |item|
         order_values.map do |sort|
@@ -114,6 +140,11 @@ module Criterion
           sort.last == :desc ? -item.send(sort.first) : item.send(sort.first)
         end
       end
+    end
+
+    def valid_number?(value)
+      return false unless value.is_a?(Integer)
+      value >= 0
     end
 
   end

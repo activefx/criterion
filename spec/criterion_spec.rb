@@ -7,7 +7,7 @@ RSpec.describe Criterion do
   let(:three) { Hashie::Mash.new(name: 'John', age: 50) }
 
   let(:collection) { [ one, two, three ].extend(described_class) }
-  let(:criteria) { collection.where(name: 'Matt') }
+  let(:criteria) { collection.criteria }
 
   it "has a version number" do
     expect(Criterion::VERSION).not_to be nil
@@ -20,11 +20,15 @@ RSpec.describe Criterion do
 
   context "::Criteria" do
 
-    context "#where" do
+    context "#critera" do
 
-      it "returns a criteria" do
-        expect(collection.where).to be_a Criterion::Criteria
+      it "returns a Criterion::Criteria" do
+        expect(collection.criteria).to be_a Criterion::Criteria
       end
+
+    end
+
+    context "#where" do
 
       it "can filter by exact value" do
         expect(collection.where(name: 'Matt').first).to eq one
@@ -60,6 +64,18 @@ RSpec.describe Criterion do
 
     end
 
+    context "where?" do
+
+      it "returns false if there are no where criteria" do
+        expect(criteria).not_to be_where
+      end
+
+      it "returns true when where criteria is present" do
+        expect(collection.where(name: 'Matt')).to be_where
+      end
+
+    end
+
     context "#not" do
 
       it "does not include matching values" do
@@ -68,6 +84,18 @@ RSpec.describe Criterion do
 
       it "all values must match for result to be excluded" do
         expect(collection.not(name: 'Matt', age: 40)).to include one
+      end
+
+    end
+
+    context "not?" do
+
+      it "returns false if there are no not criteria" do
+        expect(criteria).not_to be_not
+      end
+
+      it "returns true when not criteria is present" do
+        expect(collection.not(name: 'Matt')).to be_not
       end
 
     end
@@ -84,10 +112,34 @@ RSpec.describe Criterion do
 
     end
 
+    context "order?" do
+
+      it "returns false if there are no order criteria" do
+        expect(criteria).not_to be_order
+      end
+
+      it "returns true when order criteria is present" do
+        expect(collection.order(:name)).to be_order
+      end
+
+    end
+
     context "#limit" do
 
       it "limits the number of results" do
         expect(collection.where(age: 0..100).limit(2).count).to eq 2
+      end
+
+    end
+
+    context "limit?" do
+
+      it "returns false if there are no limit criteria" do
+        expect(criteria).not_to be_limit
+      end
+
+      it "returns true when limit criteria is present" do
+        expect(collection.limit(2)).to be_limit
       end
 
     end
@@ -104,10 +156,22 @@ RSpec.describe Criterion do
 
     end
 
+    context "offset?" do
+
+      it "returns false if there are no offset criteria" do
+        expect(criteria).not_to be_offset
+      end
+
+      it "returns true when offset criteria is present" do
+        expect(collection.offset(2)).to be_offset
+      end
+
+    end
+
     context "#count" do
 
       it "totals the results matching the criteria" do
-        expect(criteria.count).to eq 1
+        expect(collection.where(name: 'Matt').count).to eq 1
       end
 
     end
@@ -115,7 +179,7 @@ RSpec.describe Criterion do
     context "#first" do
 
       it "returns the first result matching the criteria" do
-        expect(criteria.first.name).to eq 'Matt'
+        expect(collection.where(name: 'Matt').first.name).to eq 'Matt'
       end
 
     end
@@ -123,7 +187,7 @@ RSpec.describe Criterion do
     context "#last" do
 
       it "returns the last result matching the criteria" do
-        expect(criteria.last.name).to eq 'Matt'
+        expect(collection.where(name: 'Matt').last.name).to eq 'Matt'
       end
 
     end
