@@ -5,7 +5,7 @@ module Criterion
   extend Forwardable
 
   def_delegators :criteria,
-    :where, :not, :order, :limit, :offset, :skip,
+    :where, :or, :not, :order, :limit, :offset, :skip,
     :sum, :maximum, :minimum, :average
 
   def criteria
@@ -16,7 +16,7 @@ module Criterion
     extend Forwardable
     include Enumerable
 
-    MULTI_VALUE_METHODS   = [ :where, :not, :order ]
+    MULTI_VALUE_METHODS   = [ :where, :or, :not, :order ]
     SINGLE_VALUE_METHODS  = [ :limit, :offset ]
     RESULT_METHODS = [
       :[], :at, :count, :empty?, :fetch, :first, :include?, :index,
@@ -25,7 +25,7 @@ module Criterion
     ]
 
     attr_accessor \
-      :where_values, :not_values, :order_values,
+      :where_values, :or_values, :not_values, :order_values,
       :limit_value, :offset_value
 
     def_delegators :to_a, *RESULT_METHODS
@@ -39,6 +39,12 @@ module Criterion
     def where(query = {})
       clone.tap do |r|
         r.where_values.merge!(query) unless query.empty?
+      end
+    end
+
+    def or(query = {})
+      clone.tap do |r|
+        r.or_values.merge!(query) unless query.empty?
       end
     end
 
@@ -89,6 +95,10 @@ module Criterion
       !where_values.empty?
     end
 
+    def or?
+      !or_values.empty?
+    end
+
     def not?
       !not_values.empty?
     end
@@ -129,8 +139,10 @@ module Criterion
 
     def keep?(record)
       keep = where? ? criteria_matches?(record, where_values) : true
+      alt = or? ? criteria_matches?(record, or_values) : false
       exclude = not? ? criteria_matches?(record, not_values) : false
-      keep && !exclude
+      # (keep && !exclude) || (alt && !exclude)
+      (keep || alt) && !exclude
     end
 
     def ordering_args

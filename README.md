@@ -98,6 +98,17 @@ collection.where(name: 'Matt', age: 40).empty?
 #=> true
 ````
 
+### Or 
+
+As #where calls must match all query values, calling #or allows for an alternative query that will return results if either the #where or #or arguments match. 
+
+````ruby 
+collection.where(name: 'Matt').or(name: 'John').to_a
+#=> [{"name"=>"Matt", "age"=>30}, {"name"=>"John", "age"=>50}]
+````
+
+For #or to work, a #where query must also be performed. 
+
 ### Not 
 
 The #not method negates the query, returning matches that do not match all of the specified values. Like #where, #not can search by exact value, regular expression, class, proc, and range. 

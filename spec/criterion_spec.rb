@@ -76,6 +76,30 @@ RSpec.describe Criterion do
 
     end
 
+    context "#or" do
+
+      it "provides an alternative to the where conditions" do
+        expect(collection.where(name: 'Matt').or(name: 'John').to_a).to eq [ one, three ]
+      end
+
+      it "requires where values to provide an alternative" do
+        expect(collection.or(name: 'John').to_a).not_to eq [ three ]
+      end
+
+    end
+
+    context "#or?" do
+
+      it "returns false if there are no not criteria" do
+        expect(criteria).not_to be_or
+      end
+
+      it "returns true when not criteria is present" do
+        expect(collection.or(name: 'Matt')).to be_or
+      end
+
+    end
+
     context "#not" do
 
       it "does not include matching values" do
