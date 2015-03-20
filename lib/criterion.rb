@@ -141,7 +141,6 @@ module Criterion
       keep = where? ? criteria_matches?(record, where_values) : true
       alt = or? ? criteria_matches?(record, or_values) : false
       exclude = not? ? criteria_matches?(record, not_values) : false
-      # (keep && !exclude) || (alt && !exclude)
       (keep || alt) && !exclude
     end
 
