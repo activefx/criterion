@@ -1,7 +1,10 @@
 # Criterion
 
-[![Build Status](https://secure.travis-ci.org/activefx/criterion.png)](http://travis-ci.org/activefx/criterion)
-[![Code Climate](https://codeclimate.com/github/activefx/criterion/badges/gpa.svg)](https://codeclimate.com/github/activefx/criterion)
+[![Gem Version](https://img.shields.io/gem/v/criterion.svg?style=flat)](https://rubygems.org/gems/criterion)
+[![Build Status](https://img.shields.io/travis/activefx/criterion.svg?style=flat)](http://travis-ci.org/activefx/criterion)
+[![Code Climate](https://img.shields.io/codeclimate/github/activefx/criterion.svg?style=flat)](https://codeclimate.com/github/activefx/criterion)
+[![Test Coverage](https://img.shields.io/codeclimate/coverage/github/activefx/criterion.svg?style=flat)](https://codeclimate.com/github/activefx/criterion/coverage)
+[![Dependency Status](https://gemnasium.com/activefx/criterion.svg)](https://gemnasium.com/activefx/criterion)
 
 Criterion is a small, simple library for searching Ruby arrays and collections with a chainable, Active Record style query interface.
 
