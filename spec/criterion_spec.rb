@@ -86,6 +86,13 @@ RSpec.describe Criterion do
         expect(collection.or(name: 'John').to_a).not_to eq [ three ]
       end
 
+      it "works when both values are procs" do
+        results = collection
+          .where(age: ->(age){ age == 30 })
+          .or(age: ->(age){ age == 50 }).to_a
+        expect(results).to eq [ one, three ]
+      end
+
     end
 
     context "#or?" do
